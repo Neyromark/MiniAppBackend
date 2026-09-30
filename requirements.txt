@@ -1,0 +1,5 @@
+fastapi>=0.110
+uvicorn[standard]>=0.29
+SQLAlchemy>=2.0
+# Только для MSSQL (как в CurrentChatBot); для SQLite по умолчанию не нужен:
+pyodbc>=5.0
