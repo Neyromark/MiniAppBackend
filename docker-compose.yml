@@ -1,0 +1,65 @@
+services:
+  msql_server:
+    image: mcr.microsoft.com/mssql/server:latest
+    container_name: msql_server
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: "${SA_PASSWORD:-YourStrongPassword123!}"
+      MSSQL_PID: "Developer"
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql-data:/var/opt/mssql
+    networks:
+      - mssql-net
+    restart: unless-stopped
+
+  miniapp:
+    # Целевая платформа — Linux x86_64 (сервер). На Mac с Apple Silicon образ собирается и запускается
+    # через эмуляцию (Rosetta/QEMU) — медленнее, но результат идентичен серверному.
+    platform: linux/amd64
+    build:
+      context: .
+      platforms:
+        - linux/amd64
+      args:
+        INSTALL_MSSQL: "${INSTALL_MSSQL:-false}"    # драйвер ODBC 17 для MSSQL; false — образ только под SQLite
+    image: current-miniapp-backend:latest
+    container_name: current-miniapp-backend
+    restart: unless-stopped
+    # .env вшит в образ; env_file ниже позволяет переопределить значения без пересборки
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      HOST: 0.0.0.0             # внутри контейнера слушаем все интерфейсы
+      PORT: 8000
+      SQLITE_PATH: /data/miniapp.db
+      # SQL Server — соседний контейнер mssql_server (две «s») в общей сети mssql-net: обращаемся по имени контейнера.
+      # (127.0.0.1 из .env внутри контейнера означал бы сам контейнер мини-аппа.)
+      # Имя должно совпадать с `docker ps` → NAMES контейнера БД, иначе «Login timeout expired».
+      # Переопределяется через DOCKER_DB_HOST; пустое значение (DOCKER_DB_HOST=) → SQLite в томе /data.
+      DB_HOST: "${DOCKER_DB_HOST-mssql_server}"
+      # Внутренний порт контейнера SQL Server (не опубликованный на хосте)
+      DB_PORT: "${DOCKER_DB_PORT:-1433}"
+      DB_DRIVER: "ODBC Driver 17 for SQL Server"   # именно он установлен в образе (msodbcsql17)
+    ports:
+      - "${MINIAPP_PORT:-8000}:8000"
+    volumes:
+      - miniapp-data:/data
+    networks:
+      - default
+      - mssql-net
+    # Позволяет обращаться к боту/сервисам на хосте как host.docker.internal (в т.ч. на Linux)
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+volumes:
+  mssql-data:
+  miniapp-data:
+
+networks:
+  # Создана заранее: docker network create mssql-net && docker network connect mssql-net msql_server
+  # compose её не создаёт и не удаляет
+  mssql-net:
+    external: true

@@ -141,7 +141,8 @@ def authenticate(session: Session, init_data: Any) -> Actor:
         except AuthError as exc:
             logger.warning("Отклонён вход: %s", exc.reason)
             raise ApiError("unauthorized", "Сессия устарела. Закройте и откройте мини-приложение заново"
-                           if exc.expired else "Не удалось подтвердить данные MAX. Откройте приложение из MAX")
+                           if exc.expired else "Не удалось подтвердить данные MAX. Откройте приложение из MAX",
+                           {"reason": exc.reason})        # причина не секретна; нужна, чтобы понять, что именно не так
         found = lookup_by_max_id(session, launch.max_user_id)
         if found.actor is None:
             logger.warning("Вход отклонён: MaxId %s — %s", launch.max_user_id, found.reason)
@@ -154,8 +155,12 @@ def authenticate(session: Session, init_data: Any) -> Actor:
             return actor
         raise ApiError("unauthorized", "Пользователь не найден")
 
-    logger.warning("Отклонён вход: initData не строка WebAppData (тип %s)", type(init_data).__name__)
-    raise ApiError("unauthorized", "Не удалось подтвердить данные MAX. Откройте приложение из MAX")
+    kind = type(init_data).__name__
+    hint = ("получен неподписанный объект: отладочный вход выключен (DEV_AUTH=false)"
+            if isinstance(init_data, dict) else f"initData не строка WebAppData (тип {kind})")
+    logger.warning("Отклонён вход: %s", hint)
+    raise ApiError("unauthorized", "Не удалось подтвердить данные MAX. Откройте приложение из MAX",
+                   {"reason": hint})
 
 
 def load_actor(session: Session, user_id: int, member_id: int) -> Optional[Actor]:

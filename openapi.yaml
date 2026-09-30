@@ -1,0 +1,24 @@
+openapi: 3.1.0
+info:
+  title: CurrentMiniAppBackend
+  version: 1.0.0
+  description: >
+    Основной канал — WebSocket /ws (не описывается в OpenAPI).
+    Здесь описан только HTTP-endpoint проверки доступности.
+servers:
+  - url: https://api.example.org
+paths:
+  /health:
+    get:
+      summary: Проверка доступности сервиса
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [ok]
+                properties:
+                  ok:
+                    type: boolean

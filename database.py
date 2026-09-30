@@ -42,7 +42,12 @@ class Database:
                 cur.close()
 
         self._session_factory = sessionmaker(bind=self._engine, autoflush=False, expire_on_commit=False)
-        logger.info("БД: %s", self._engine.url.render_as_string(hide_password=True))
+        if settings.uses_mssql():
+            # hide_password не маскирует PWD внутри odbc_connect — пишем без секретов
+            logger.info("БД: mssql %s:%s/%s (user=%s, driver=%s)", settings.DB_HOST, settings.DB_PORT,
+                        settings.DB_NAME, settings.DB_USER, settings.DB_DRIVER)
+        else:
+            logger.info("БД: %s", self._engine.url.render_as_string(hide_password=True))
 
     def create_all(self) -> None:
         Base.metadata.create_all(self._engine)

@@ -1,0 +1,54 @@
+# .env НЕ исключён: Dockerfile копирует его в образ (COPY .env ./).
+# ---- Секреты, кроме .env (он вшивается в образ намеренно — см. Dockerfile) ----
+.env.*
+!.env.example
+*.pem
+*.key
+private-key
+
+# ---- VCS, окружение, кэши, IDE ----
+.git
+.gitignore
+venv
+.venv
+env
+**/__pycache__
+**/*.pyc
+**/*.pyo
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.idea
+.vscode
+.explyt
+.tasks
+**/.DS_Store
+*.code-workspace
+
+# ---- Данные и архивы (архивы docker save иначе попадут в контекст сборки) ----
+*.tar
+*.tar.gz
+*.db
+*.db-journal
+*.sqlite3
+*.bacpac
+mssql-data
+*.log
+logs
+
+# ---- Документация ----
+*.md
+*.pdf
+docs
+
+# ---- Сами docker-файлы ----
+Dockerfile
+.dockerignore
+docker-compose.yml
+compose.yaml
+
+# ---- Тесты и спецификации API — в рантайме не нужны ----
+smoke_test.py
+test_*.py
+DATA-API.yaml
+openapi.yaml

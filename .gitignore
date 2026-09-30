@@ -1,6 +1,47 @@
+# ---- Секреты: только .env.example коммитится ----
 .env
-*.db
+.env.*
+!.env.example
+*.pem
+*.key
+private-key
+
+# ---- Python ----
 __pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
 venv/
 .venv/
+env/
+ENV/
+
+# ---- Артефакты и данные ----
+*.log
+logs/
+*.db
+*.db-journal
+*.sqlite3
+# архивы образов docker save (в них вшит .env с секретами!)
+*.tar
+*.tar.gz
+*.bacpac
+mssql-data/
+
+# ---- ОС и редакторы ----
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
 .explyt/
+.tasks/
+*.code-workspace
+*.swp
+*.swo
+*~

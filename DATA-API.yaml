@@ -1,0 +1,39 @@
+# DATA-API 1.0
+# Do not place passwords, tokens, API keys or other real secrets in this file.
+#
+# ВАЖНО: основной канал бэкенда — WebSocket /ws (JSON-действия snapshot, task.*, pool.*, deadline.*),
+# а DATA-API описывает только HTTP-проверки. Поэтому в HTTP-контракт входит единственный
+# HTTP-endpoint — GET /health. Описание WebSocket-протокола см. в app.py / README.md.
+
+schemaVersion: "1.0"
+
+solution:
+  name: "CurrentMiniAppBackend"
+  teamId: "<team id>"
+
+api:
+  # Замените на реальный HTTPS-адрес развёрнутого сервиса
+  baseUrl: "https://api.example.org"
+  openapi: "./openapi.yaml"
+  defaultHeaders:
+    Accept: "application/json"
+
+checks:
+  - id: "health"
+    name: "Service health"
+    description: "Проверка доступности сервиса"
+    method: "GET"
+    path: "/health"
+    role: "public"
+    expected:
+      statusCodes: [200]
+      contentType: "application/json"
+      requiredFields: ["ok"]
+      bodySchema:
+        type: "object"
+        required: ["ok"]
+        properties:
+          ok:
+            type: "boolean"
+    timeoutMs: 5000
+    repeatable: true
